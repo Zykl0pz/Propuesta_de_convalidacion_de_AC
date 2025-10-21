@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Máquina Hipotética</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        black: {
+                            500: '#000000',
+                            600: '#111111',
+                            700: '#222222',
+                        },
+                        blue: {
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Rubik:wght@400;500;600&display=swap');
+
+        :root {
+            --primary: #000000;
+            --secondary: #3b82f6;
+            --bg-dark: #111827;
+            --text-light: #f3f4f6;
+            --highlight: rgba(59, 130, 246, 0.2);
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .highlight {
+            transition: all 0.5s ease;
+            background-color: var(--highlight);
+            box-shadow: 0 0 0 2px var(--secondary);
+        }
+
+        .bus {
+            stroke: var(--secondary);
+            stroke-width: 2;
+            stroke-dasharray: 5;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 10;
+            }
+        }
+
+        .memory-cell {
+            transition: all 0.3s ease;
+        }
+
+        .register {
+            transition: all 0.3s ease;
+        }
+
+        .log-entry {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div class="container mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-400 mb-2">Simulador de Máquina Hipotética</h1>
+            <p class="text-gray-400">Arquitectura con palabras de 16 bits y una instrucción por palabra</p>
+        </header>
+
+        <!-- Arquitectura Info -->
+        <div class="bg-black-700 rounded-lg p-4 mb-8 shadow-lg">
+            <h2 class="text-xl font-semibold text-blue-400 mb-2">Especificaciones de la Arquitectura</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="bg-black-600 rounded p-3">
+                    <h3 class="font-medium text-blue-400">Formato de Palabra</h3>
+                    <p class="mono mt-1">16 bits total</p>
+                    <p class="mono">4 bits: código operación</p>
+                    <p class="mono">12 bits: dirección</p>
+                </div>
+                <div class="bg-black-600 rounded p-3">
+                    <h3 class="font-medium text-blue-400">Memoria</h3>
+                    <p class="mono mt-1">4096 palabras (12 bits dirección)</p>
+                    <p class="mono">Una instrucción por palabra</p>
+                </div>
+                <div class="bg-black-600 rounded p-3">
+                    <h3 class="font-medium text-blue-400">Registros</h3>
+                    <p class="mono mt-1">PC, MAR: 12 bits</p>
+                    <p class="mono">MBR, IR, AC: 16 bits</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Case Selector -->
+        <div class="bg-black-700 rounded-lg p-6 mb-8 shadow-lg">
+            <h2 class="text-xl font-semibold text-blue-400 mb-4">Seleccionar Caso de Prueba</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- Case 1 -->
+                <div class="case-card bg-black-600 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition cursor-pointer"
+                    data-case="1">
+                    <h3 class="font-medium text-blue-400 mb-1">Caso 1: Suma Básica</h3>
+                    <p class="text-sm text-gray-400">Carga un número, suma otro y almacena el resultado</p>
+                </div>
+                <!-- Case 2 -->
+                <div class="case-card bg-black-600 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition cursor-pointer"
+                    data-case="2">
+                    <h3 class="font-medium text-blue-400 mb-1">Caso 2: Resta Básica</h3>
+                    <p class="text-sm text-gray-400">Carga un número, resta otro y almacena el resultado</p>
+                </div>
+                <!-- Case 3 -->
+                <div class="case-card bg-black-600 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition cursor-pointer"
+                    data-case="3">
+                    <h3 class="font-medium text-blue-400 mb-1">Caso 3: Suma Triple</h3>
+                    <p class="text-sm text-gray-400">Suma tres números y almacena el total</p>
+                </div>
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="startBtn"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition disabled:bg-gray-700 disabled:cursor-not-allowed"
+                    disabled>
+                    Iniciar Ejecución
+                </button>
+                <button id="stepBtn"
+                    class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-medium transition disabled:bg-gray-700 disabled:cursor-not-allowed"
+                    disabled>
+                    Paso a Paso
+                </button>
+                <button id="resetBtn"
+                    class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition">
+                    Reiniciar
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Simulation Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Memory Panel -->
+            <div class="bg-black-700 rounded-lg p-4 shadow-lg lg:col-span-1">
+                <h2 class="text-xl font-semibold text-blue-400 mb-4">Memoria Principal</h2>
+                <div class="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto" id="memoryTable">
+                    <!-- Memory cells will be generated by JS -->
+                </div>
+            </div>
+
+            <!-- CPU Panel -->
+            <div class="bg-black-700 rounded-lg p-4 shadow-lg lg:col-span-2 relative">
+                <h2 class="text-xl font-semibold text-blue-400 mb-4">CPU - Unidad de Procesamiento</h2>
+
+                <!-- CPU Diagram -->
+                <div class="relative h-96">
+                    <!-- SVG for buses -->
+                    <svg class="absolute w-full h-full" id="cpuSvg">
+                        <!-- Buses will be drawn by JS -->
+                    </svg>
+
+                    <!-- CPU Components -->
+                    <div class="absolute grid grid-cols-3 gap-4 w-full h-full">
+                        <!-- Left Column: Registers -->
+                        <div class="space-y-4">
+                            <!-- PC -->
+                            <div class="register bg-black-600 rounded p-3" id="PC">
+                                <h3 class="text-sm font-medium text-blue-400">PC</h3>
+                                <div class="mono text-sm mt-1">0x000</div>
+                                <div class="text-xs text-gray-400">12 bits</div>
+                            </div>
+                            <!-- MAR -->
+                            <div class="register bg-black-600 rounded p-3" id="MAR">
+                                <h3 class="text-sm font-medium text-blue-400">MAR</h3>
+                                <div class="mono text-sm mt-1">0x000</div>
+                                <div class="text-xs text-gray-400">12 bits</div>
+                            </div>
+                            <!-- MBR -->
+                            <div class="register bg-black-600 rounded p-3" id="MBR">
+                                <h3 class="text-sm font-medium text-blue-400">MBR</h3>
+                                <div class="mono text-sm mt-1">0x0000</div>
+                                <div class="text-xs text-gray-400">16 bits</div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Column: ALU and Control -->
+                        <div class="space-y-4">
+                            <!-- ALU -->
+                            <div class="bg-black-600 rounded p-3 h-24 flex flex-col justify-center" id="ALU">
+                                <h3 class="text-sm font-medium text-blue-400 text-center">Unidad Aritmético-Lógica</h3>
+                                <div class="mono text-sm mt-1 text-center">INACTIVA</div>
+                            </div>
+                            <!-- Control Unit -->
+                            <div class="bg-black-600 rounded p-3 h-24 flex flex-col justify-center" id="Control">
+                                <h3 class="text-sm font-medium text-blue-400 text-center">Unidad de Control</h3>
+                                <div class="mono text-sm mt-1 text-center">INACTIVA</div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: More Registers -->
+                        <div class="space-y-4">
+                            <!-- IR -->
+                            <div class="register bg-black-600 rounded p-3" id="IR">
+                                <h3 class="text-sm font-medium text-blue-400">IR</h3>
+                                <div class="mono text-sm mt-1">0x0000</div>
+                                <div class="text-xs text-gray-400">16 bits</div>
+                            </div>
+                            <!-- AC -->
+                            <div class="register bg-black-600 rounded p-3" id="AC">
+                                <h3 class="text-sm font-medium text-blue-400">AC</h3>
+                                <div class="mono text-sm mt-1">0x0000</div>
+                                <div class="text-xs text-gray-400">16 bits</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instruction Format -->
+                <div class="mt-4 bg-black-600 rounded p-3">
+                    <h3 class="text-sm font-medium text-blue-400 mb-2">Formato de Instrucción Actual</h3>
+                    <div class="flex justify-between items-center">
+                        <div class="text-center">
+                            <div class="mono bg-blue-800 px-2 py-1 rounded">Código OP</div>
+                            <div class="text-xs mt-1">4 bits</div>
+                        </div>
+                        <div class="text-center flex-1 mx-2">
+                            <div class="mono bg-green-800 px-2 py-1 rounded">Dirección</div>
+                            <div class="text-xs mt-1">12 bits</div>
+                        </div>
+                    </div>
+                    <div id="instructionDetails" class="mt-2 text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operation Log -->
+        <div class="bg-black-700 rounded-lg p-4 shadow-lg">
+            <h2 class="text-xl font-semibold text-blue-400 mb-4">Registro de Operaciones</h2>
+            <div class="bg-black-800 rounded-lg p-4 h-48 overflow-y-auto mono text-sm" id="logArea">
+                <div class="text-gray-500">Seleccione un caso de prueba y haga clic en "Iniciar Ejecución" para comenzar...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Instruction Set for the hypothetical machine
+        const INSTRUCTION_SET = {
+            0x1: { name: "LOAD", description: "Cargar AC desde memoria" },
+            0x2: { name: "STOR", description: "Almacenar AC en memoria" },
+            0x3: { name: "LOADIO", description: "Cargar AC desde E/S" },
+            0x4: { name: "STORIO", description: "Almacenar AC en E/S" },
+            0x5: { name: "ADD", description: "Sumar a AC dato de memoria" },
+            0x6: { name: "SUB", description: "Restar a AC dato de memoria" },
+            0x7: { name: "JUMP", description: "Salto incondicional" },
+            0x8: { name: "JNEG", description: "Salto si AC negativo" },
+            0x9: { name: "JPOS", description: "Salto si AC positivo" },
+            0xA: { name: "JZERO", description: "Salto si AC cero" }
+        };
+
+        // Memory and CPU state
+        const state = {
+            selectedCase: null,
+            isRunning: false,
+            stepByStep: false,
+            currentStep: 0,
+            memory: Array(4096).fill(0),
+            registers: {
+                PC: 0,
+                MAR: 0,
+                MBR: 0,
+                IR: 0,
+                AC: 0
+            },
+            control: {
+                ALU: "INACTIVA",
+                Control: "INACTIVA"
+            },
+            ioDevices: {
+                5: 3,  // Device 5 has value 3
+                6: 0   // Device 6 initially 0
+            },
+            testCases: {
+                1: {
+                    name: "Suma Básica (5 + 10)",
+                    memory: {
+                        0x100: 0x1200, // LOAD M(0x200)
+                        0x101: 0x5201, // ADD M(0x201)
+                        0x102: 0x2202, // STOR M(0x202)
+                        0x200: 5,
+                        0x201: 10,
+                        0x202: 0
+                    },
+                    PC: 0x100,
+                    steps: [
+                        // Fetch instruction
+                        {action: "highlight", component: "PC", message: "Ciclo de captación - PC contiene la dirección de la instrucción"},
+                        {action: "update", register: "MAR", value: 0x100, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "highlight", component: "MAR", message: "Ciclo de captación - MAR contiene dirección de memoria"},
+                        {action: "update", register: "MBR", value: 0x1200, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "highlight", component: "MBR", message: "Ciclo de captación - MBR contiene la instrucción"},
+                        {action: "update", register: "PC", value: 0x101, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x1200, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        {action: "highlight", component: "IR", message: "Ciclo de captación - IR contiene la instrucción completa"},
+                        
+                        // Decode and execute LOAD
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción LOAD M(0x200)"},
+                        {action: "highlight", component: "Control", message: "Ciclo de ejecución - Unidad de Control activa"},
+                        {action: "update", register: "MAR", value: 0x200, message: "Ciclo de ejecución - Extraer dirección del operando (0x200) y colocar en MAR"},
+                        {action: "highlight", component: "MAR", message: "Ciclo de ejecución - MAR contiene dirección del dato"},
+                        {action: "update", register: "MBR", value: 5, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "highlight", component: "MBR", message: "Ciclo de ejecución - MBR contiene el dato (5)"},
+                        {action: "update", register: "AC", value: 5, message: "Ciclo de ejecución - Transferir dato de MBR a AC"},
+                        {action: "highlight", component: "AC", message: "Ciclo de ejecución - AC contiene el valor 5"},
+                        
+                        // Fetch next instruction
+                        {action: "update", register: "MAR", value: 0x101, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x5201, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x102, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x5201, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        
+                        // Decode and execute ADD
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción ADD M(0x201)"},
+                        {action: "update", register: "MAR", value: 0x201, message: "Ciclo de ejecución - Extraer dirección del operando (0x201) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 10, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "update", control: "ALU", value: "SUMANDO", message: "Ciclo de ejecución - ALU realizando operación de suma"},
+                        {action: "highlight", component: "ALU", message: "Ciclo de ejecución - ALU activa para operación aritmética"},
+                        {action: "update", register: "AC", value: 15, message: "Ciclo de ejecución - Sumar MBR (10) a AC (5) = 15"},
+                        {action: "highlight", component: "AC", message: "Ciclo de ejecución - AC actualizado con resultado 15"},
+                        
+                        // Fetch next instruction
+                        {action: "update", register: "MAR", value: 0x102, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x2202, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x103, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x2202, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        
+                        // Decode and execute STOR
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción STOR M(0x202)"},
+                        {action: "update", register: "MAR", value: 0x202, message: "Ciclo de ejecución - Extraer dirección del operando (0x202) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 15, message: "Ciclo de ejecución - Copiar AC (15) a MBR"},
+                        {action: "memory", address: 0x202, value: 15, message: "Ciclo de ejecución - Escribir MBR (15) en memoria (0x202)"},
+                        {action: "highlight", component: "memory-0x202", message: "Ciclo de ejecución - Memoria actualizada en dirección 0x202"}
+                    ]
+                },
+                2: {
+                    name: "Resta Básica (20 - 8)",
+                    memory: {
+                        0x110: 0x1210, // LOAD M(0x210)
+                        0x111: 0x6211, // SUB M(0x211)
+                        0x112: 0x2212, // STOR M(0x212)
+                        0x210: 20,
+                        0x211: 8,
+                        0x212: 0
+                    },
+                    PC: 0x110,
+                    steps: [
+                        // Fetch instruction
+                        {action: "highlight", component: "PC", message: "Ciclo de captación - PC contiene la dirección de la instrucción"},
+                        {action: "update", register: "MAR", value: 0x110, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x1210, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x111, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x1210, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        
+                        // Decode and execute LOAD
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción LOAD M(0x210)"},
+                        {action: "update", register: "MAR", value: 0x210, message: "Ciclo de ejecución - Extraer dirección del operando (0x210) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 20, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "update", register: "AC", value: 20, message: "Ciclo de ejecución - Transferir dato de MBR a AC"},
+                        
+                        // Fetch next instruction
+                        {action: "update", register: "MAR", value: 0x111, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x6211, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x112, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x6211, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        
+                        // Decode and execute SUB
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción SUB M(0x211)"},
+                        {action: "update", register: "MAR", value: 0x211, message: "Ciclo de ejecución - Extraer dirección del operando (0x211) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 8, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "update", control: "ALU", value: "RESTANDO", message: "Ciclo de ejecución - ALU realizando operación de resta"},
+                        {action: "update", register: "AC", value: 12, message: "Ciclo de ejecución - Restar MBR (8) de AC (20) = 12"},
+                        
+                        // Fetch next instruction
+                        {action: "update", register: "MAR", value: 0x112, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x2212, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x113, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x2212, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        
+                        // Decode and execute STOR
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción STOR M(0x212)"},
+                        {action: "update", register: "MAR", value: 0x212, message: "Ciclo de ejecución - Extraer dirección del operando (0x212) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 12, message: "Ciclo de ejecución - Copiar AC (12) a MBR"},
+                        {action: "memory", address: 0x212, value: 12, message: "Ciclo de ejecución - Escribir MBR (12) en memoria (0x212)"}
+                    ]
+                },
+                3: {
+                    name: "Suma Triple (4 + 7 + 9)",
+                    memory: {
+                        0x120: 0x1220, // LOAD M(0x220)
+                        0x121: 0x5221, // ADD M(0x221)
+                        0x122: 0x5222, // ADD M(0x222)
+                        0x123: 0x2223, // STOR M(0x223)
+                        0x220: 4,
+                        0x221: 7,
+                        0x222: 9,
+                        0x223: 0
+                    },
+                    PC: 0x120,
+                    steps: [
+                        // Fetch and execute LOAD
+                        {action: "update", register: "MAR", value: 0x120, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x1220, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x121, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x1220, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción LOAD M(0x220)"},
+                        {action: "update", register: "MAR", value: 0x220, message: "Ciclo de ejecución - Extraer dirección del operando (0x220) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 4, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "update", register: "AC", value: 4, message: "Ciclo de ejecución - Transferir dato de MBR a AC"},
+                        
+                        // Fetch and execute first ADD
+                        {action: "update", register: "MAR", value: 0x121, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x5221, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x122, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x5221, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción ADD M(0x221)"},
+                        {action: "update", register: "MAR", value: 0x221, message: "Ciclo de ejecución - Extraer dirección del operando (0x221) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 7, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "update", control: "ALU", value: "SUMANDO", message: "Ciclo de ejecución - ALU realizando operación de suma"},
+                        {action: "update", register: "AC", value: 11, message: "Ciclo de ejecución - Sumar MBR (7) a AC (4) = 11"},
+                        
+                        // Fetch and execute second ADD
+                        {action: "update", register: "MAR", value: 0x122, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x5222, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x123, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x5222, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción ADD M(0x222)"},
+                        {action: "update", register: "MAR", value: 0x222, message: "Ciclo de ejecución - Extraer dirección del operando (0x222) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 9, message: "Ciclo de ejecución - Leer dato de memoria a MBR"},
+                        {action: "update", control: "ALU", value: "SUMANDO", message: "Ciclo de ejecución - ALU realizando operación de suma"},
+                        {action: "update", register: "AC", value: 20, message: "Ciclo de ejecución - Sumar MBR (9) a AC (11) = 20"},
+                        
+                        // Fetch and execute STOR
+                        {action: "update", register: "MAR", value: 0x123, message: "Ciclo de captación - Copiar PC a MAR"},
+                        {action: "update", register: "MBR", value: 0x2223, message: "Ciclo de captación - Leer instrucción de memoria a MBR"},
+                        {action: "update", register: "PC", value: 0x124, message: "Ciclo de captación - Incrementar PC"},
+                        {action: "update", register: "IR", value: 0x2223, message: "Ciclo de captación - Transferir instrucción de MBR a IR"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Ciclo de ejecución - Decodificar instrucción STOR M(0x223)"},
+                        {action: "update", register: "MAR", value: 0x223, message: "Ciclo de ejecución - Extraer dirección del operando (0x223) y colocar en MAR"},
+                        {action: "update", register: "MBR", value: 20, message: "Ciclo de ejecución - Copiar AC (20) a MBR"},
+                        {action: "memory", address: 0x223, value: 20, message: "Ciclo de ejecución - Escribir MBR (20) en memoria (0x223)"}
+                    ]
+                }
+            }
+        };
+
+        // DOM Elements
+        const caseCards = document.querySelectorAll('.case-card');
+        const startBtn = document.getElementById('startBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const memoryTable = document.getElementById('memoryTable');
+        const logArea = document.getElementById('logArea');
+        const cpuSvg = document.getElementById('cpuSvg');
+        const instructionDetails = document.getElementById('instructionDetails');
+
+        // Initialize the simulator
+        function initSimulator() {
+            renderMemory();
+            renderBuses();
+
+            // Case selection
+            caseCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    caseCards.forEach(c => c.classList.remove('border-blue-500', 'bg-blue-800'));
+                    card.classList.add('border-blue-500', 'bg-blue-800');
+                    state.selectedCase = parseInt(card.dataset.case);
+                    startBtn.disabled = false;
+                    stepBtn.disabled = false;
+                    resetSimulator();
+                    loadTestCase(state.selectedCase);
+                    addLog(`Caso de prueba ${state.selectedCase} seleccionado: ${state.testCases[state.selectedCase].name}`);
+                });
+            });
+
+            // Start button
+            startBtn.addEventListener('click', () => {
+                if (state.selectedCase && !state.isRunning) {
+                    state.isRunning = true;
+                    state.stepByStep = false;
+                    startBtn.disabled = true;
+                    stepBtn.disabled = true;
+                    startBtn.textContent = "Ejecutando...";
+                    executeStep();
+                }
+            });
+
+            // Step button
+            stepBtn.addEventListener('click', () => {
+                if (state.selectedCase && !state.isRunning) {
+                    state.isRunning = true;
+                    state.stepByStep = true;
+                    startBtn.disabled = true;
+                    stepBtn.textContent = "Siguiente Paso";
+                    executeStep();
+                } else if (state.stepByStep) {
+                    executeStep();
+                }
+            });
+
+            // Reset button
+            resetBtn.addEventListener('click', resetSimulator);
+        }
+
+        // Load a test case into memory
+        function loadTestCase(testCase) {
+            const tc = state.testCases[testCase];
+
+            // Reset memory
+            state.memory = Array(4096).fill(0);
+
+            // Load instructions and data
+            for (const [addr, value] of Object.entries(tc.memory)) {
+                const addrNum = parseInt(addr);
+                state.memory[addrNum] = value;
+            }
+
+            // Set PC
+            state.registers.PC = tc.PC;
+
+            // Reset other registers
+            state.registers.MAR = 0;
+            state.registers.MBR = 0;
+            state.registers.IR = 0;
+            state.registers.AC = 0;
+
+            // Reset control
+            state.control.ALU = "INACTIVA";
+            state.control.Control = "INACTIVA";
+
+            // Render updates
+            renderMemory();
+            renderRegisters();
+            renderControl();
+            updateInstructionDetails();
+        }
+
+        // Execute one step of the simulation
+        async function executeStep() {
+            if (!state.isRunning) return;
+
+            const tc = state.testCases[state.selectedCase];
+
+            if (state.currentStep < tc.steps.length) {
+                const step = tc.steps[state.currentStep];
+
+                // Execute the individual action
+                await executeAction(step);
+
+                state.currentStep++;
+
+                // Continue to next step if not in step-by-step mode
+                if (!state.stepByStep) {
+                    setTimeout(executeStep, 1000);
+                } else {
+                    state.isRunning = false;
+                    stepBtn.disabled = false;
+                }
+            } else {
+                // Execution complete
+                state.isRunning = false;
+                state.stepByStep = false;
+                startBtn.disabled = false;
+                stepBtn.disabled = true;
+                startBtn.textContent = "Iniciar Ejecución";
+                stepBtn.textContent = "Paso a Paso";
+                addLog(`Ejecución completada. Resultado final: ${state.memory[tc.PC + 3]}`);
+            }
+        }
+
+        // Execute a single action
+        async function executeAction(action) {
+            // Add log message
+            addLog(`Paso ${state.currentStep + 1}: ${action.message}`, true);
+
+            // Execute the action based on type
+            switch (action.action) {
+                case "highlight":
+                    highlightComponent(action.component);
+                    break;
+                case "update":
+                    if (action.register) {
+                        state.registers[action.register] = action.value;
+                    } else if (action.control) {
+                        state.control[action.control] = action.value;
+                    }
+                    break;
+                case "memory":
+                    state.memory[action.address] = action.value;
+                    renderMemory();
+                    break;
+            }
+
+            // Update displays
+            renderRegisters();
+            renderControl();
+            updateInstructionDetails();
+
+            // Wait for the highlight to be visible
+            await new Promise(resolve => setTimeout(resolve, 600));
+        }
+
+        // Highlight a component temporarily
+        function highlightComponent(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.classList.add('highlight');
+                setTimeout(() => {
+                    element.classList.remove('highlight');
+                }, 1000);
+            }
+        }
+
+        // Add a log entry
+        function addLog(message, isStep = false) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${isStep ? 'text-blue-400' : 'text-gray-300'} mb-1`;
+            entry.textContent = message;
+            logArea.appendChild(entry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Update instruction details display
+        function updateInstructionDetails() {
+            const irValue = state.registers.IR;
+            if (irValue === 0) {
+                instructionDetails.innerHTML = '<span class="text-gray-500">Sin instrucción cargada</span>';
+                return;
+            }
+
+            // Extract opcode and address from IR
+            const opcode = (irValue >> 12) & 0xF;
+            const address = irValue & 0xFFF;
+            
+            const instruction = INSTRUCTION_SET[opcode] || { name: "DESCONOCIDA", description: "Instrucción no reconocida" };
+            
+            instructionDetails.innerHTML = `
+                <div class="flex justify-between">
+                    <span>Instrucción:</span>
+                    <span class="mono">${instruction.name} M(0x${address.toString(16).toUpperCase().padStart(3, '0')})</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Código OP:</span>
+                    <span class="mono">0x${opcode.toString(16).toUpperCase()} (${opcode})</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Dirección:</span>
+                    <span class="mono">0x${address.toString(16).toUpperCase().padStart(3, '0')} (${address})</span>
+                </div>
+                <div class="mt-1 text-xs">${instruction.description}</div>
+            `;
+        }
+
+        // Reset the simulator to initial state
+        function resetSimulator() {
+            state.isRunning = false;
+            state.stepByStep = false;
+            state.currentStep = 0;
+
+            // Reset registers
+            state.registers = {
+                PC: 0,
+                MAR: 0,
+                MBR: 0,
+                IR: 0,
+                AC: 0
+            };
+
+            // Reset control
+            state.control = {
+                ALU: "INACTIVA",
+                Control: "INACTIVA"
+            };
+
+            // Reset UI
+            startBtn.disabled = !state.selectedCase;
+            stepBtn.disabled = !state.selectedCase;
+            startBtn.textContent = "Iniciar Ejecución";
+            stepBtn.textContent = "Paso a Paso";
+
+            // Clear log if no test case selected
+            if (!state.selectedCase) {
+                logArea.innerHTML = '<div class="text-gray-500">Seleccione un caso de prueba y haga clic en "Iniciar Ejecución" para comenzar...</div>';
+            } else {
+                loadTestCase(state.selectedCase);
+                addLog(`Simulador reiniciado. Caso de prueba ${state.selectedCase} cargado.`);
+            }
+
+            // Update displays
+            renderRegisters();
+            renderControl();
+            updateInstructionDetails();
+        }
+
+        // Render memory table
+        function renderMemory() {
+            memoryTable.innerHTML = '';
+
+            // Determine which memory addresses to show based on selected test case
+            let addresses = [];
+            if (state.selectedCase) {
+                const tc = state.testCases[state.selectedCase];
+                addresses = Object.keys(tc.memory).map(addr => parseInt(addr));
+                
+                // Also show a range around the program
+                const minAddr = Math.min(...addresses);
+                const maxAddr = Math.max(...addresses);
+                for (let i = Math.max(0, minAddr - 5); i <= Math.min(4095, maxAddr + 5); i++) {
+                    if (!addresses.includes(i)) {
+                        addresses.push(i);
+                    }
+                }
+                
+                addresses.sort((a, b) => a - b);
+            } else {
+                // Show default range if no test case selected
+                addresses = Array.from({ length: 20 }, (_, i) => i * 0x10);
+            }
+
+            // Create memory cells
+            addresses.forEach(addr => {
+                const cell = document.createElement('div');
+                cell.className = 'memory-cell bg-black-600 rounded p-2 flex justify-between';
+                cell.id = `memory-0x${addr.toString(16)}`;
+
+                const addrSpan = document.createElement('span');
+                addrSpan.className = 'mono text-blue-400';
+                addrSpan.textContent = `0x${addr.toString(16).toUpperCase().padStart(3, '0')}`;
+
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'mono';
+
+                const value = state.memory[addr];
+                
+                // Check if this is an instruction or data
+                const isInstruction = state.selectedCase && 
+                    Object.keys(state.testCases[state.selectedCase].memory).includes(addr.toString()) &&
+                    addr < 0x200; // Simple heuristic: instructions below 0x200
+                
+                if (isInstruction) {
+                    const opcode = (value >> 12) & 0xF;
+                    const address = value & 0xFFF;
+                    const instruction = INSTRUCTION_SET[opcode] || { name: "???" };
+                    valueSpan.textContent = `${instruction.name} M(0x${address.toString(16).toUpperCase().padStart(3, '0')})`;
+                    valueSpan.classList.add('text-green-400');
+                } else {
+                    valueSpan.textContent = value.toString();
+                    valueSpan.classList.add('text-yellow-400');
+                }
+
+                cell.appendChild(addrSpan);
+                cell.appendChild(valueSpan);
+                memoryTable.appendChild(cell);
+            });
+        }
+
+        // Render register values
+        function renderRegisters() {
+            for (const [reg, value] of Object.entries(state.registers)) {
+                const element = document.getElementById(reg);
+                if (element) {
+                    const valueElement = element.querySelector('div:nth-child(2)');
+                    if (valueElement) {
+                        if (reg === 'PC' || reg === 'MAR') {
+                            valueElement.textContent = `0x${value.toString(16).toUpperCase().padStart(3, '0')}`;
+                        } else {
+                            valueElement.textContent = `0x${value.toString(16).toUpperCase().padStart(4, '0')}`;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Render control unit states
+        function renderControl() {
+            for (const [unit, stateText] of Object.entries(state.control)) {
+                const element = document.getElementById(unit);
+                if (element) {
+                    const stateElement = element.querySelector('div:nth-child(2)');
+                    if (stateElement) {
+                        stateElement.textContent = stateText;
+                        stateElement.className = 'mono text-sm mt-1 text-center ' +
+                            (stateText === "INACTIVA" ? 'text-gray-400' : 'text-blue-400');
+                    }
+                }
+            }
+        }
+
+        // Render bus connections (simplified for demo)
+        function renderBuses() {
+            // Clear existing buses
+            cpuSvg.innerHTML = '';
+
+            // Data Bus (simplified representation)
+            const dataBus = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            dataBus.setAttribute("d", "M25,50 L75,50");
+            dataBus.setAttribute("class", "bus");
+            dataBus.setAttribute("id", "dataBus");
+            cpuSvg.appendChild(dataBus);
+
+            // Address Bus (simplified representation)
+            const addressBus = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            addressBus.setAttribute("d", "M25,80 L75,80");
+            addressBus.setAttribute("class", "bus");
+            addressBus.setAttribute("id", "addressBus");
+            cpuSvg.appendChild(addressBus);
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initSimulator);
+    </script>
+</body>
+</html>

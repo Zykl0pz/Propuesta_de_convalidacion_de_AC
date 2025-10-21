@@ -1,0 +1,120 @@
+# ===================================
+# .gitignore para Proyectos Python y Java
+# ===================================
+# Excluye dependencias, compilados y archivos temporales.
+# Mantiene solo el código fuente y los archivos de configuración de build.
+
+# -------------------------------------------------
+# Python
+# -------------------------------------------------
+
+# Archivos compilados / cache de bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales (venv, env, conda, poetry)
+# Contienen las dependencias descargadas, que no deben ir en el repo.
+venv/
+env/
+.venv/
+.conda/
+# Si usas poetry, la carpeta .venv se crea por defecto dentro del proyecto
+
+# Archivos de entorno (secretsos, configuraciones locales)
+# NUNCA commits archivos .env con claves o datos sensibles.
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Distribución / empaquetado (resultados de 'python setup.py sdist')
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Pruebas y cobertura de código
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# -------------------------------------------------
+# Java
+# -------------------------------------------------
+
+# Archivos compilados (.class)
+*.class
+
+# Directorios de construcción y dependencias
+# Maven
+target/
+# Gradle
+build/
+.gradle/
+# IntelliJ IDEA
+out/
+
+# Archivos de paquete generados (JAR, WAR, etc.)
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+*.log
+logs/
+
+# Archivos de crash de la máquina virtual de Java (JVM)
+hs_err_pid*
+replay_pid*
+
+# -------------------------------------------------
+# Herramientas / IDEs / Editores de Código
+# -------------------------------------------------
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+# Nota: Los archivos .vscode/ a menudo se compiten para configurar el proyecto,
+# pero puedes descomentar las líneas anteriores si quieres ignorarlos todos.
+
+# Vim / Emacs
+*.swp
+*.swo
+*~
+
+# -------------------------------------------------
+# Sistema Operativo
+# -------------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Desktop.ini
+ $RECYCLE.BIN/

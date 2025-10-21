@@ -1,0 +1,1 @@
+Abrir cualquiera de los dos archivos contenidos en esta carpeta con un navegador web de preferencia y con acceso a internet para la correcta visualización de la interfaz dado que esta utiliza recursos externos para embellecer la vista 

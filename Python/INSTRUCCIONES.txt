@@ -1,0 +1,9 @@
+Tener python 3 o superior instalado, ejecutar en la raíz de esta carpeta el comando
+
+source/bin/activate
+
+Esto activará el entorno que permite ejecutar las dependencias necesarias para correr el proyecto, posteriormente ejecutar
+
+python3 script.py
+
+Para ejecutar el script de python y esto dará inicio al programa en ceustión que representará el flujo deseado
