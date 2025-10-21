@@ -98,6 +98,31 @@
             border-radius: 0.5rem;
             margin: 1rem 0;
         }
+        
+        .opcode-legend {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        
+        .opcode-legend.expanded {
+            max-height: 1000px;
+        }
+        
+        .toggle-legend {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .notation-legend {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        
+        .notation-legend.expanded {
+            max-height: 500px;
+        }
     </style>
 </head>
 
@@ -123,6 +148,195 @@
                 </div>
                 <div class="mt-2 text-xs text-gray-400">
                     <p>Cada palabra de memoria contiene 40 bits: dos instrucciones de 20 bits o un número de 40 bits</p>
+                </div>
+            </div>
+            
+            <!-- Notation Legend -->
+            <div class="instruction-format mt-4 text-left max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-blue-400 font-semibold">Notación Utilizada en el Simulador</h3>
+                    <span id="toggleNotation" class="toggle-legend text-blue-400 text-sm">
+                        <span id="toggleNotationText">Mostrar</span> ▼
+                    </span>
+                </div>
+                <div id="notationLegend" class="notation-legend">
+                    <div class="text-sm space-y-2">
+                        <div>
+                            <p class="text-yellow-400 font-medium">Direcciones de Memoria:</p>
+                            <p class="text-xs text-gray-300 mt-1">
+                                Las direcciones se representan con el prefijo <span class="mono">0x</span> para indicar una notación de memoria "realista".
+                                Por ejemplo: <span class="mono">0x100</span> representa una dirección X en decimal.
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-yellow-400 font-medium">Registros Principales:</p>
+                            <p class="text-xs text-gray-300 mt-1">
+                                <span class="mono">PC</span> - Program Counter (Contador de Programa)<br>
+                                <span class="mono">MAR</span> - Memory Address Register (Registro de Dirección de Memoria)<br>
+                                <span class="mono">MBR</span> - Memory Buffer Register (Registro Buffer de Memoria)<br>
+                                <span class="mono">IR</span> - Instruction Register (Registro de Instrucción)<br>
+                                <span class="mono">IBR</span> - Instruction Buffer Register (Registro Buffer de Instrucción)<br>
+                                <span class="mono">AC</span> - Accumulator (Acumulador)<br>
+                                <span class="mono">MQ</span> - Multiplier-Quotient (Multiplicador-Cociente)
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-yellow-400 font-medium">Notación de Memoria:</p>
+                            <p class="text-xs text-gray-300 mt-1">
+                                <span class="mono">M(X)</span> representa el contenido almacenado en la dirección de memoria X.<br>
+                                Por ejemplo: <span class="mono">M(0x200)</span> se refiere al dato almacenado en la dirección 0x200.
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-yellow-400 font-medium">Flujo de Datos:</p>
+                            <p class="text-xs text-gray-300 mt-1">
+                                La flecha <span class="mono">→</span> indica la dirección del flujo de datos.<br>
+                                Ejemplo: <span class="mono">PC → MAR</span> significa que el contenido de PC se transfiere a MAR.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Opcode Legend -->
+            <div class="instruction-format mt-4 text-left max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-blue-400 font-semibold">Leyenda de Códigos de Operación (Opcode)</h3>
+                    <span id="toggleLegend" class="toggle-legend text-blue-400 text-sm">
+                        <span id="toggleText">Mostrar</span> ▼
+                    </span>
+                </div>
+                <div id="opcodeLegend" class="opcode-legend">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <!-- Data Transfer Instructions -->
+                        <div>
+                            <h4 class="text-green-400 font-medium mb-2">Instrucciones de Transferencia de Datos</h4>
+                            <table class="w-full text-xs">
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LOAD MQ</td>
+                                    <td>Transfiere contenido del registro MQ al acumulador AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LOAD MQ,M(X)</td>
+                                    <td>Transfiere contenido de memoria M(X) al registro MQ</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">STOR M(X)</td>
+                                    <td>Almacena contenido del acumulador AC en memoria M(X)</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LOAD M(X)</td>
+                                    <td>Transfiere contenido de memoria M(X) al acumulador AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LOAD -M(X)</td>
+                                    <td>Transfiere contenido negativo de memoria M(X) al AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LOAD |M(X)|</td>
+                                    <td>Transfiere valor absoluto de memoria M(X) al AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LOAD -|M(X)|</td>
+                                    <td>Transfiere valor absoluto negativo de memoria M(X) al AC</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Unconditional Branch Instructions -->
+                        <div>
+                            <h4 class="text-green-400 font-medium mb-2">Instrucciones de Salto Incondicional</h4>
+                            <table class="w-full text-xs">
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">JUMP M(X,0:19)</td>
+                                    <td>Salta a la instrucción izquierda en memoria M(X)</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">JUMP M(X,20:39)</td>
+                                    <td>Salta a la instrucción derecha en memoria M(X)</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Conditional Branch Instructions -->
+                        <div>
+                            <h4 class="text-green-400 font-medium mb-2">Instrucciones de Salto Condicional</h4>
+                            <table class="w-full text-xs">
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">JUMP + M(X,0:19)</td>
+                                    <td>Si AC ≥ 0, salta a instrucción izquierda en M(X)</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">JUMP + M(X,20:39)</td>
+                                    <td>Si AC ≥ 0, salta a instrucción derecha en M(X)</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Arithmetic Instructions -->
+                        <div>
+                            <h4 class="text-green-400 font-medium mb-2">Instrucciones Aritméticas</h4>
+                            <table class="w-full text-xs">
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">ADD M(X)</td>
+                                    <td>Suma contenido de memoria M(X) al acumulador AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">ADD |M(X)|</td>
+                                    <td>Suma valor absoluto de memoria M(X) al AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">SUB M(X)</td>
+                                    <td>Resta contenido de memoria M(X) del acumulador AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">SUB |M(X)|</td>
+                                    <td>Resta valor absoluto de memoria M(X) del AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">MUL M(X)</td>
+                                    <td>Multiplica AC por memoria M(X), resultado en MQ y AC</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">DIV M(X)</td>
+                                    <td>Divide AC por memoria M(X), cociente en MQ, resto en AC</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Address Modify Instructions -->
+                        <div>
+                            <h4 class="text-green-400 font-medium mb-2">Instrucciones de Modificación de Dirección</h4>
+                            <table class="w-full text-xs">
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">LSH</td>
+                                    <td>Desplaza acumulador AC una posición a la izquierda</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">RSH</td>
+                                    <td>Desplaza acumulador AC una posición a la derecha</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Special Instructions -->
+                        <div>
+                            <h4 class="text-green-400 font-medium mb-2">Instrucciones Especiales</h4>
+                            <table class="w-full text-xs">
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">STOR M(X,8:19)</td>
+                                    <td>Almacena bits 8-19 del AC en memoria M(X)</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-yellow-400 pr-2">STOR M(X,28:39)</td>
+                                    <td>Almacena bits 28-39 del AC en memoria M(X)</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-gray-400">
+                        <p><span class="text-yellow-400">Nota:</span> M(X) representa la ubicación de memoria en la dirección X. Los registros principales son AC (Acumulador) y MQ (Multiplicador-Cociente).</p>
+                    </div>
                 </div>
             </div>
         </header>
@@ -294,52 +508,52 @@
                     },
                     PC: 0x100,
                     steps: [
-                        {action: "highlight", component: "PC", message: "Buscar par de instrucciones de memoria - Establecer PC a 0x100"},
-                        {action: "update", register: "MAR", value: 0x100, message: "Buscar par de instrucciones - Establecer MAR al valor de PC"},
-                        {action: "highlight", component: "MAR", message: "Buscar par de instrucciones - MAR contiene la dirección"},
-                        {action: "update", register: "MBR", value: "LOAD M(0x200) ADD M(0x201)", message: "Buscar par de instrucciones - Leer palabra de 40 bits de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar par de instrucciones - MBR contiene ambas instrucciones"},
-                        {action: "update", register: "IBR", value: "ADD M(0x201)", message: "Almacenar instrucción derecha en IBR - IBR ahora contiene ADD M(0x201)"},
-                        {action: "highlight", component: "IBR", message: "Almacenar instrucción derecha en IBR - IBR activo"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción izquierda LOAD M(0x200) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción izquierda - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "LOAD M(0x200)", message: "Decodificar instrucción izquierda - Instrucción cargada en IR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción izquierda - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x200, message: "Buscar operando de la ubicación de memoria 0x200 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 5, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", register: "AC", value: 5, message: "Cargar valor 5 en AC - Transferir datos de MBR a AC"},
-                        {action: "highlight", component: "AC", message: "Cargar valor 5 en AC - AC ahora contiene el valor"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción derecha desde IBR ADD M(0x201) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción derecha - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "ADD M(0x201)", message: "Decodificar instrucción derecha - Instrucción cargada en IR desde IBR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción derecha - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x201, message: "Buscar operando de la ubicación de memoria 0x201 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 10, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", control: "ALU", value: "SUMANDO", message: "Sumar valor 10 a AC (resultado: 15) - ALU realizando suma"},
-                        {action: "highlight", component: "ALU", message: "Sumar valor 10 a AC - ALU activa"},
-                        {action: "update", register: "AC", value: 15, message: "Sumar valor 10 a AC (resultado: 15) - Actualizar AC con el resultado"},
-                        {action: "highlight", component: "AC", message: "Sumar valor 10 a AC - AC actualizado con la suma"},
-                        {action: "update", register: "PC", value: 0x101, message: "Incrementar PC al siguiente par de instrucciones - PC ahora 0x101"},
-                        {action: "highlight", component: "PC", message: "Incrementar PC - PC apunta al siguiente par de instrucciones"},
-                        {action: "update", register: "MAR", value: 0x101, message: "Buscar siguiente par de instrucciones - Establecer MAR al valor de PC"},
-                        {action: "highlight", component: "MAR", message: "Buscar par de instrucciones - MAR contiene la dirección"},
-                        {action: "update", register: "MBR", value: "STOR M(0x202) NOP", message: "Buscar par de instrucciones - Leer palabra de 40 bits de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar par de instrucciones - MBR contiene ambas instrucciones"},
-                        {action: "update", register: "IBR", value: "NOP", message: "Almacenar instrucción derecha en IBR - IBR ahora contiene NOP"},
-                        {action: "highlight", component: "IBR", message: "Almacenar instrucción derecha en IBR - IBR activo"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción izquierda STOR M(0x202) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción izquierda - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "STOR M(0x202)", message: "Decodificar instrucción izquierda - Instrucción cargada en IR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción izquierda - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x202, message: "Almacenar AC (15) en ubicación de memoria 0x202 - Establecer MAR a dirección de destino"},
-                        {action: "highlight", component: "MAR", message: "Almacenar AC - MAR contiene dirección de destino"},
-                        {action: "update", register: "MBR", value: 15, message: "Almacenar AC (15) en memoria - Copiar valor de AC a MBR"},
-                        {action: "highlight", component: "MBR", message: "Almacenar AC - MBR contiene valor a almacenar"},
-                        {action: "memory", address: 0x202, value: 15, message: "Almacenar AC (15) en ubicación de memoria 0x202 - Escribir valor en memoria"}
+                        {action: "highlight", component: "PC", message: "INICIO: PC (Program Counter) contiene dirección 0x100 - apunta a la primera instrucción"},
+                        {action: "update", register: "MAR", value: 0x100, message: "FLUJO DE DATOS: PC (0x100) → MAR (Memory Address Register) - La dirección se transfiere al registro de direcciones de memoria"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x100 - dirección de memoria que se va a acceder"},
+                        {action: "update", register: "MBR", value: "LOAD M(0x200) ADD M(0x201)", message: "FLUJO DE DATOS: Memoria[0x100] → MBR (Memory Buffer Register) - Se lee la palabra de 40 bits (dos instrucciones) desde memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: [LOAD M(0x200) | ADD M(0x201)] - ambas instrucciones cargadas"},
+                        {action: "update", register: "IBR", value: "ADD M(0x201)", message: "FLUJO DE DATOS: MBR.instrucción_derecha → IBR (Instruction Buffer Register) - Se almacena la instrucción derecha para ejecución posterior"},
+                        {action: "highlight", component: "IBR", message: "IBR ahora contiene: ADD M(0x201) - instrucción derecha en espera"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar LOAD M(0x200) - Analizando la instrucción izquierda"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: LOAD M(0x200)"},
+                        {action: "update", register: "IR", value: "LOAD M(0x200)", message: "FLUJO DE DATOS: MBR.instrucción_izquierda → IR (Instruction Register) - Instrucción izquierda transferida al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: LOAD M(0x200) - instrucción lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x200, message: "FLUJO DE DATOS: IR.dirección(0x200) → MAR - Dirección del operando transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x200 - dirección del dato a cargar"},
+                        {action: "update", register: "MBR", value: 5, message: "FLUJO DE DATOS: Memoria[0x200] → MBR - Se lee el valor 5 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 5 - dato listo para transferir al acumulador"},
+                        {action: "update", register: "AC", value: 5, message: "FLUJO DE DATOS: MBR(5) → AC (Accumulator) - El valor 5 se transfiere al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC ahora contiene: 5 - primer operando cargado exitosamente"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar ADD M(0x201) desde IBR - Procesando instrucción derecha"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: ADD M(0x201)"},
+                        {action: "update", register: "IR", value: "ADD M(0x201)", message: "FLUJO DE DATOS: IBR → IR - Instrucción derecha transferida desde el buffer al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: ADD M(0x201) - instrucción de suma lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x201, message: "FLUJO DE DATOS: IR.dirección(0x201) → MAR - Dirección del segundo operando transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x201 - dirección del segundo dato a sumar"},
+                        {action: "update", register: "MBR", value: 10, message: "FLUJO DE DATOS: Memoria[0x201] → MBR - Se lee el valor 10 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 10 - segundo operando listo para la suma"},
+                        {action: "update", control: "ALU", value: "SUMANDO", message: "ALU (Arithmetic Logic Unit): Recibe AC(5) y MBR(10) - Iniciando operación de suma"},
+                        {action: "highlight", component: "ALU", message: "ALU calculando: 5 + 10 = 15"},
+                        {action: "update", register: "AC", value: 15, message: "FLUJO DE DATOS: ALU(15) → AC - Resultado de la suma transferido al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC actualizado: 15 - suma completada exitosamente"},
+                        {action: "update", register: "PC", value: 0x101, message: "FLUJO DE CONTROL: PC incrementado a 0x101 - Apunta al siguiente par de instrucciones"},
+                        {action: "highlight", component: "PC", message: "PC ahora contiene: 0x101 - siguiente dirección de instrucción"},
+                        {action: "update", register: "MAR", value: 0x101, message: "FLUJO DE DATOS: PC(0x101) → MAR - Nueva dirección transferida al registro de direcciones de memoria"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene: 0x101 - dirección del siguiente par de instrucciones"},
+                        {action: "update", register: "MBR", value: "STOR M(0x202) NOP", message: "FLUJO DE DATOS: Memoria[0x101] → MBR - Se lee el siguiente par de instrucciones desde memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: [STOR M(0x202) | NOP] - nuevas instrucciones cargadas"},
+                        {action: "update", register: "IBR", value: "NOP", message: "FLUJO DE DATOS: MBR.instrucción_derecha → IBR - NOP almacenado en el buffer de instrucciones"},
+                        {action: "highlight", component: "IBR", message: "IBR ahora contiene: NOP - instrucción nula en espera"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar STOR M(0x202) - Analizando instrucción de almacenamiento"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: STOR M(0x202)"},
+                        {action: "update", register: "IR", value: "STOR M(0x202)", message: "FLUJO DE DATOS: MBR.instrucción_izquierda → IR - Instrucción STOR transferida al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: STOR M(0x202) - instrucción de almacenamiento lista"},
+                        {action: "update", register: "MAR", value: 0x202, message: "FLUJO DE DATOS: IR.dirección(0x202) → MAR - Dirección de destino transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene: 0x202 - dirección donde se almacenará el resultado"},
+                        {action: "update", register: "MBR", value: 15, message: "FLUJO DE DATOS: AC(15) → MBR - El resultado se copia del acumulador al buffer de memoria para escritura"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 15 - dato listo para ser escrito en memoria"},
+                        {action: "memory", address: 0x202, value: 15, message: "FLUJO DE DATOS: MBR(15) → Memoria[0x202] - El resultado se escribe en la dirección de memoria especificada"}
                     ]
                 },
                 2: {
@@ -353,52 +567,52 @@
                     },
                     PC: 0x110,
                     steps: [
-                        {action: "highlight", component: "PC", message: "Buscar par de instrucciones de memoria - Establecer PC a 0x110"},
-                        {action: "update", register: "MAR", value: 0x110, message: "Buscar par de instrucciones - Establecer MAR al valor de PC"},
-                        {action: "highlight", component: "MAR", message: "Buscar par de instrucciones - MAR contiene la dirección"},
-                        {action: "update", register: "MBR", value: "LOAD M(0x210) SUB M(0x211)", message: "Buscar par de instrucciones - Leer palabra de 40 bits de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar par de instrucciones - MBR contiene ambas instrucciones"},
-                        {action: "update", register: "IBR", value: "SUB M(0x211)", message: "Almacenar instrucción derecha en IBR - IBR ahora contiene SUB M(0x211)"},
-                        {action: "highlight", component: "IBR", message: "Almacenar instrucción derecha en IBR - IBR activo"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción izquierda LOAD M(0x210) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción izquierda - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "LOAD M(0x210)", message: "Decodificar instrucción izquierda - Instrucción cargada en IR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción izquierda - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x210, message: "Buscar operando de la ubicación de memoria 0x210 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 20, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", register: "AC", value: 20, message: "Cargar valor 20 en AC - Transferir datos de MBR a AC"},
-                        {action: "highlight", component: "AC", message: "Cargar valor 20 en AC - AC ahora contiene el valor"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción derecha desde IBR SUB M(0x211) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción derecha - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "SUB M(0x211)", message: "Decodificar instrucción derecha - Instrucción cargada en IR desde IBR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción derecha - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x211, message: "Buscar operando de la ubicación de memoria 0x211 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 8, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", control: "ALU", value: "RESTANDO", message: "Restar valor 8 de AC (resultado: 12) - ALU realizando resta"},
-                        {action: "highlight", component: "ALU", message: "Restar valor 8 de AC - ALU activa"},
-                        {action: "update", register: "AC", value: 12, message: "Restar valor 8 de AC (resultado: 12) - Actualizar AC con el resultado"},
-                        {action: "highlight", component: "AC", message: "Restar valor 8 de AC - AC actualizado con la diferencia"},
-                        {action: "update", register: "PC", value: 0x111, message: "Incrementar PC al siguiente par de instrucciones - PC ahora 0x111"},
-                        {action: "highlight", component: "PC", message: "Incrementar PC - PC apunta al siguiente par de instrucciones"},
-                        {action: "update", register: "MAR", value: 0x111, message: "Buscar siguiente par de instrucciones - Establecer MAR al valor de PC"},
-                        {action: "highlight", component: "MAR", message: "Buscar par de instrucciones - MAR contiene la dirección"},
-                        {action: "update", register: "MBR", value: "STOR M(0x212) NOP", message: "Buscar par de instrucciones - Leer palabra de 40 bits de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar par de instrucciones - MBR contiene ambas instrucciones"},
-                        {action: "update", register: "IBR", value: "NOP", message: "Almacenar instrucción derecha en IBR - IBR ahora contiene NOP"},
-                        {action: "highlight", component: "IBR", message: "Almacenar instrucción derecha en IBR - IBR activo"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción izquierda STOR M(0x212) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción izquierda - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "STOR M(0x212)", message: "Decodificar instrucción izquierda - Instrucción cargada en IR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción izquierda - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x212, message: "Almacenar AC (12) en ubicación de memoria 0x212 - Establecer MAR a dirección de destino"},
-                        {action: "highlight", component: "MAR", message: "Almacenar AC - MAR contiene dirección de destino"},
-                        {action: "update", register: "MBR", value: 12, message: "Almacenar AC (12) en memoria - Copiar valor de AC a MBR"},
-                        {action: "highlight", component: "MBR", message: "Almacenar AC - MBR contiene valor a almacenar"},
-                        {action: "memory", address: 0x212, value: 12, message: "Almacenar AC (12) en ubicación de memoria 0x212 - Escribir valor en memoria"}
+                        {action: "highlight", component: "PC", message: "INICIO: PC (Program Counter) contiene dirección 0x110 - apunta a la primera instrucción"},
+                        {action: "update", register: "MAR", value: 0x110, message: "FLUJO DE DATOS: PC (0x110) → MAR (Memory Address Register) - La dirección se transfiere al registro de direcciones de memoria"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x110 - dirección de memoria que se va a acceder"},
+                        {action: "update", register: "MBR", value: "LOAD M(0x210) SUB M(0x211)", message: "FLUJO DE DATOS: Memoria[0x110] → MBR (Memory Buffer Register) - Se lee la palabra de 40 bits (dos instrucciones) desde memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: [LOAD M(0x210) | SUB M(0x211)] - ambas instrucciones cargadas"},
+                        {action: "update", register: "IBR", value: "SUB M(0x211)", message: "FLUJO DE DATOS: MBR.instrucción_derecha → IBR (Instruction Buffer Register) - Se almacena la instrucción derecha para ejecución posterior"},
+                        {action: "highlight", component: "IBR", message: "IBR ahora contiene: SUB M(0x211) - instrucción derecha en espera"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar LOAD M(0x210) - Analizando la instrucción izquierda"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: LOAD M(0x210)"},
+                        {action: "update", register: "IR", value: "LOAD M(0x210)", message: "FLUJO DE DATOS: MBR.instrucción_izquierda → IR (Instruction Register) - Instrucción izquierda transferida al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: LOAD M(0x210) - instrucción lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x210, message: "FLUJO DE DATOS: IR.dirección(0x210) → MAR - Dirección del operando transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x210 - dirección del dato a cargar"},
+                        {action: "update", register: "MBR", value: 20, message: "FLUJO DE DATOS: Memoria[0x210] → MBR - Se lee el valor 20 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 20 - dato listo para transferir al acumulador"},
+                        {action: "update", register: "AC", value: 20, message: "FLUJO DE DATOS: MBR(20) → AC (Accumulator) - El valor 20 se transfiere al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC ahora contiene: 20 - minuendo cargado exitosamente"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar SUB M(0x211) desde IBR - Procesando instrucción derecha"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: SUB M(0x211)"},
+                        {action: "update", register: "IR", value: "SUB M(0x211)", message: "FLUJO DE DATOS: IBR → IR - Instrucción derecha transferida desde el buffer al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: SUB M(0x211) - instrucción de resta lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x211, message: "FLUJO DE DATOS: IR.dirección(0x211) → MAR - Dirección del sustraendo transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x211 - dirección del dato a restar"},
+                        {action: "update", register: "MBR", value: 8, message: "FLUJO DE DATOS: Memoria[0x211] → MBR - Se lee el valor 8 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 8 - sustraendo listo para la resta"},
+                        {action: "update", control: "ALU", value: "RESTANDO", message: "ALU (Arithmetic Logic Unit): Recibe AC(20) y MBR(8) - Iniciando operación de resta"},
+                        {action: "highlight", component: "ALU", message: "ALU calculando: 20 - 8 = 12"},
+                        {action: "update", register: "AC", value: 12, message: "FLUJO DE DATOS: ALU(12) → AC - Resultado de la resta transferido al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC actualizado: 12 - resta completada exitosamente"},
+                        {action: "update", register: "PC", value: 0x111, message: "FLUJO DE CONTROL: PC incrementado a 0x111 - Apunta al siguiente par de instrucciones"},
+                        {action: "highlight", component: "PC", message: "PC ahora contiene: 0x111 - siguiente dirección de instrucción"},
+                        {action: "update", register: "MAR", value: 0x111, message: "FLUJO DE DATOS: PC(0x111) → MAR - Nueva dirección transferida al registro de direcciones de memoria"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene: 0x111 - dirección del siguiente par de instrucciones"},
+                        {action: "update", register: "MBR", value: "STOR M(0x212) NOP", message: "FLUJO DE DATOS: Memoria[0x111] → MBR - Se lee el siguiente par de instrucciones desde memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: [STOR M(0x212) | NOP] - nuevas instrucciones cargadas"},
+                        {action: "update", register: "IBR", value: "NOP", message: "FLUJO DE DATOS: MBR.instrucción_derecha → IBR - NOP almacenado en el buffer de instrucciones"},
+                        {action: "highlight", component: "IBR", message: "IBR ahora contiene: NOP - instrucción nula en espera"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar STOR M(0x212) - Analizando instrucción de almacenamiento"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: STOR M(0x212)"},
+                        {action: "update", register: "IR", value: "STOR M(0x212)", message: "FLUJO DE DATOS: MBR.instrucción_izquierda → IR - Instrucción STOR transferida al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: STOR M(0x212) - instrucción de almacenamiento lista"},
+                        {action: "update", register: "MAR", value: 0x212, message: "FLUJO DE DATOS: IR.dirección(0x212) → MAR - Dirección de destino transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene: 0x212 - dirección donde se almacenará el resultado"},
+                        {action: "update", register: "MBR", value: 12, message: "FLUJO DE DATOS: AC(12) → MBR - El resultado se copia del acumulador al buffer de memoria para escritura"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 12 - dato listo para ser escrito en memoria"},
+                        {action: "memory", address: 0x212, value: 12, message: "FLUJO DE DATOS: MBR(12) → Memoria[0x212] - El resultado se escribe en la dirección de memoria especificada"}
                     ]
                 },
                 3: {
@@ -413,64 +627,64 @@
                     },
                     PC: 0x120,
                     steps: [
-                        {action: "highlight", component: "PC", message: "Buscar par de instrucciones de memoria - Establecer PC a 0x120"},
-                        {action: "update", register: "MAR", value: 0x120, message: "Buscar par de instrucciones - Establecer MAR al valor de PC"},
-                        {action: "highlight", component: "MAR", message: "Buscar par de instrucciones - MAR contiene la dirección"},
-                        {action: "update", register: "MBR", value: "LOAD M(0x220) ADD M(0x221)", message: "Buscar par de instrucciones - Leer palabra de 40 bits de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar par de instrucciones - MBR contiene ambas instrucciones"},
-                        {action: "update", register: "IBR", value: "ADD M(0x221)", message: "Almacenar instrucción derecha en IBR - IBR ahora contiene ADD M(0x221)"},
-                        {action: "highlight", component: "IBR", message: "Almacenar instrucción derecha en IBR - IBR activo"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción izquierda LOAD M(0x220) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción izquierda - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "LOAD M(0x220)", message: "Decodificar instrucción izquierda - Instrucción cargada en IR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción izquierda - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x220, message: "Buscar operando de la ubicación de memoria 0x220 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 4, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", register: "AC", value: 4, message: "Cargar valor 4 en AC - Transferir datos de MBR a AC"},
-                        {action: "highlight", component: "AC", message: "Cargar valor 4 en AC - AC ahora contiene el valor"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción derecha desde IBR ADD M(0x221) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción derecha - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "ADD M(0x221)", message: "Decodificar instrucción derecha - Instrucción cargada en IR desde IBR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción derecha - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x221, message: "Buscar operando de la ubicación de memoria 0x221 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 7, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", control: "ALU", value: "SUMANDO", message: "Sumar valor 7 a AC (resultado: 11) - ALU realizando suma"},
-                        {action: "highlight", component: "ALU", message: "Sumar valor 7 a AC - ALU activa"},
-                        {action: "update", register: "AC", value: 11, message: "Sumar valor 7 a AC (resultado: 11) - Actualizar AC con el resultado"},
-                        {action: "highlight", component: "AC", message: "Sumar valor 7 a AC - AC actualizado con la suma"},
-                        {action: "update", register: "PC", value: 0x121, message: "Incrementar PC al siguiente par de instrucciones - PC ahora 0x121"},
-                        {action: "highlight", component: "PC", message: "Incrementar PC - PC apunta al siguiente par de instrucciones"},
-                        {action: "update", register: "MAR", value: 0x121, message: "Buscar siguiente par de instrucciones - Establecer MAR al valor de PC"},
-                        {action: "highlight", component: "MAR", message: "Buscar par de instrucciones - MAR contiene la dirección"},
-                        {action: "update", register: "MBR", value: "ADD M(0x222) STOR M(0x223)", message: "Buscar par de instrucciones - Leer palabra de 40 bits de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar par de instrucciones - MBR contiene ambas instrucciones"},
-                        {action: "update", register: "IBR", value: "STOR M(0x223)", message: "Almacenar instrucción derecha en IBR - IBR ahora contiene STOR M(0x223)"},
-                        {action: "highlight", component: "IBR", message: "Almacenar instrucción derecha en IBR - IBR activo"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción izquierda ADD M(0x222) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción izquierda - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "ADD M(0x222)", message: "Decodificar instrucción izquierda - Instrucción cargada en IR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción izquierda - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x222, message: "Buscar operando de la ubicación de memoria 0x222 - Establecer MAR a la dirección del operando"},
-                        {action: "highlight", component: "MAR", message: "Buscar operando - MAR contiene la dirección de datos"},
-                        {action: "update", register: "MBR", value: 9, message: "Buscar operando - Leer datos de memoria a MBR"},
-                        {action: "highlight", component: "MBR", message: "Buscar operando - MBR contiene los datos"},
-                        {action: "update", control: "ALU", value: "SUMANDO", message: "Sumar valor 9 a AC (resultado: 20) - ALU realizando suma"},
-                        {action: "highlight", component: "ALU", message: "Sumar valor 9 a AC - ALU activa"},
-                        {action: "update", register: "AC", value: 20, message: "Sumar valor 9 a AC (resultado: 20) - Actualizar AC con el resultado"},
-                        {action: "highlight", component: "AC", message: "Sumar valor 9 a AC - AC actualizado con la suma"},
-                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "Decodificar instrucción derecha desde IBR STOR M(0x223) - Unidad de control decodificando"},
-                        {action: "highlight", component: "Control", message: "Decodificar instrucción derecha - Unidad de control activa"},
-                        {action: "update", register: "IR", value: "STOR M(0x223)", message: "Decodificar instrucción derecha - Instrucción cargada en IR desde IBR"},
-                        {action: "highlight", component: "IR", message: "Decodificar instrucción derecha - IR contiene la instrucción"},
-                        {action: "update", register: "MAR", value: 0x223, message: "Almacenar AC (20) en ubicación de memoria 0x223 - Establecer MAR a dirección de destino"},
-                        {action: "highlight", component: "MAR", message: "Almacenar AC - MAR contiene dirección de destino"},
-                        {action: "update", register: "MBR", value: 20, message: "Almacenar AC (20) en memoria - Copiar valor de AC a MBR"},
-                        {action: "highlight", component: "MBR", message: "Almacenar AC - MBR contiene valor a almacenar"},
-                        {action: "memory", address: 0x223, value: 20, message: "Almacenar AC (20) en ubicación de memoria 0x223 - Escribir valor en memoria"}
+                        {action: "highlight", component: "PC", message: "INICIO: PC (Program Counter) contiene dirección 0x120 - apunta a la primera instrucción"},
+                        {action: "update", register: "MAR", value: 0x120, message: "FLUJO DE DATOS: PC (0x120) → MAR (Memory Address Register) - La dirección se transfiere al registro de direcciones de memoria"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x120 - dirección de memoria que se va a acceder"},
+                        {action: "update", register: "MBR", value: "LOAD M(0x220) ADD M(0x221)", message: "FLUJO DE DATOS: Memoria[0x120] → MBR (Memory Buffer Register) - Se lee la palabra de 40 bits (dos instrucciones) desde memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: [LOAD M(0x220) | ADD M(0x221)] - ambas instrucciones cargadas"},
+                        {action: "update", register: "IBR", value: "ADD M(0x221)", message: "FLUJO DE DATOS: MBR.instrucción_derecha → IBR (Instruction Buffer Register) - Se almacena la instrucción derecha para ejecución posterior"},
+                        {action: "highlight", component: "IBR", message: "IBR ahora contiene: ADD M(0x221) - instrucción derecha en espera"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar LOAD M(0x220) - Analizando la instrucción izquierda"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: LOAD M(0x220)"},
+                        {action: "update", register: "IR", value: "LOAD M(0x220)", message: "FLUJO DE DATOS: MBR.instrucción_izquierda → IR (Instruction Register) - Instrucción izquierda transferida al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: LOAD M(0x220) - instrucción lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x220, message: "FLUJO DE DATOS: IR.dirección(0x220) → MAR - Dirección del primer operando transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x220 - dirección del primer dato a cargar"},
+                        {action: "update", register: "MBR", value: 4, message: "FLUJO DE DATOS: Memoria[0x220] → MBR - Se lee el valor 4 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 4 - primer operando listo para transferir al acumulador"},
+                        {action: "update", register: "AC", value: 4, message: "FLUJO DE DATOS: MBR(4) → AC (Accumulator) - El valor 4 se transfiere al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC ahora contiene: 4 - primer número cargado exitosamente"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar ADD M(0x221) desde IBR - Procesando instrucción derecha"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: ADD M(0x221)"},
+                        {action: "update", register: "IR", value: "ADD M(0x221)", message: "FLUJO DE DATOS: IBR → IR - Instrucción derecha transferida desde el buffer al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: ADD M(0x221) - instrucción de suma lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x221, message: "FLUJO DE DATOS: IR.dirección(0x221) → MAR - Dirección del segundo operando transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x221 - dirección del segundo dato a sumar"},
+                        {action: "update", register: "MBR", value: 7, message: "FLUJO DE DATOS: Memoria[0x221] → MBR - Se lee el valor 7 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 7 - segundo operando listo para la suma"},
+                        {action: "update", control: "ALU", value: "SUMANDO", message: "ALU (Arithmetic Logic Unit): Recibe AC(4) y MBR(7) - Iniciando primera operación de suma"},
+                        {action: "highlight", component: "ALU", message: "ALU calculando: 4 + 7 = 11"},
+                        {action: "update", register: "AC", value: 11, message: "FLUJO DE DATOS: ALU(11) → AC - Resultado de la primera suma transferido al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC actualizado: 11 - primera suma completada (4 + 7)"},
+                        {action: "update", register: "PC", value: 0x121, message: "FLUJO DE CONTROL: PC incrementado a 0x121 - Apunta al siguiente par de instrucciones"},
+                        {action: "highlight", component: "PC", message: "PC ahora contiene: 0x121 - siguiente dirección de instrucción"},
+                        {action: "update", register: "MAR", value: 0x121, message: "FLUJO DE DATOS: PC(0x121) → MAR - Nueva dirección transferida al registro de direcciones de memoria"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene: 0x121 - dirección del siguiente par de instrucciones"},
+                        {action: "update", register: "MBR", value: "ADD M(0x222) STOR M(0x223)", message: "FLUJO DE DATOS: Memoria[0x121] → MBR - Se lee el siguiente par de instrucciones desde memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: [ADD M(0x222) | STOR M(0x223)] - nuevas instrucciones cargadas"},
+                        {action: "update", register: "IBR", value: "STOR M(0x223)", message: "FLUJO DE DATOS: MBR.instrucción_derecha → IBR - STOR M(0x223) almacenado en el buffer de instrucciones"},
+                        {action: "highlight", component: "IBR", message: "IBR ahora contiene: STOR M(0x223) - instrucción de almacenamiento en espera"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar ADD M(0x222) - Analizando instrucción de suma"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: ADD M(0x222)"},
+                        {action: "update", register: "IR", value: "ADD M(0x222)", message: "FLUJO DE DATOS: MBR.instrucción_izquierda → IR - Instrucción ADD transferida al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: ADD M(0x222) - instrucción de suma lista para ejecución"},
+                        {action: "update", register: "MAR", value: 0x222, message: "FLUJO DE DATOS: IR.dirección(0x222) → MAR - Dirección del tercer operando transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene 0x222 - dirección del tercer dato a sumar"},
+                        {action: "update", register: "MBR", value: 9, message: "FLUJO DE DATOS: Memoria[0x222] → MBR - Se lee el valor 9 desde memoria al buffer de memoria"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 9 - tercer operando listo para la suma"},
+                        {action: "update", control: "ALU", value: "SUMANDO", message: "ALU (Arithmetic Logic Unit): Recibe AC(11) y MBR(9) - Iniciando segunda operación de suma"},
+                        {action: "highlight", component: "ALU", message: "ALU calculando: 11 + 9 = 20"},
+                        {action: "update", register: "AC", value: 20, message: "FLUJO DE DATOS: ALU(20) → AC - Resultado de la segunda suma transferido al acumulador"},
+                        {action: "highlight", component: "AC", message: "AC actualizado: 20 - suma total completada (4 + 7 + 9)"},
+                        {action: "update", control: "Control", value: "DECODIFICANDO", message: "UNIDAD DE CONTROL: Activada para decodificar STOR M(0x223) desde IBR - Procesando instrucción derecha"},
+                        {action: "highlight", component: "Control", message: "Unidad de Control procesando: STOR M(0x223)"},
+                        {action: "update", register: "IR", value: "STOR M(0x223)", message: "FLUJO DE DATOS: IBR → IR - Instrucción STOR transferida desde el buffer al registro de instrucciones"},
+                        {action: "highlight", component: "IR", message: "IR contiene: STOR M(0x223) - instrucción de almacenamiento lista"},
+                        {action: "update", register: "MAR", value: 0x223, message: "FLUJO DE DATOS: IR.dirección(0x223) → MAR - Dirección de destino transferida al registro de direcciones"},
+                        {action: "highlight", component: "MAR", message: "MAR ahora contiene: 0x223 - dirección donde se almacenará el resultado final"},
+                        {action: "update", register: "MBR", value: 20, message: "FLUJO DE DATOS: AC(20) → MBR - El resultado final se copia del acumulador al buffer de memoria para escritura"},
+                        {action: "highlight", component: "MBR", message: "MBR contiene: 20 - dato listo para ser escrito en memoria"},
+                        {action: "memory", address: 0x223, value: 20, message: "FLUJO DE DATOS: MBR(20) → Memoria[0x223] - El resultado final se escribe en la dirección de memoria especificada"}
                     ]
                 }
             }
@@ -484,11 +698,29 @@
         const memoryTable = document.getElementById('memoryTable');
         const logArea = document.getElementById('logArea');
         const cpuSvg = document.getElementById('cpuSvg');
+        const toggleLegend = document.getElementById('toggleLegend');
+        const toggleText = document.getElementById('toggleText');
+        const opcodeLegend = document.getElementById('opcodeLegend');
+        const toggleNotation = document.getElementById('toggleNotation');
+        const toggleNotationText = document.getElementById('toggleNotationText');
+        const notationLegend = document.getElementById('notationLegend');
 
         // Inicializar el simulador
         function initSimulator() {
             renderMemory();
             renderBuses();
+
+            // Toggle para la leyenda de notación
+            toggleNotation.addEventListener('click', () => {
+                notationLegend.classList.toggle('expanded');
+                toggleNotationText.textContent = notationLegend.classList.contains('expanded') ? 'Ocultar' : 'Mostrar';
+            });
+
+            // Toggle para la leyenda de opcodes
+            toggleLegend.addEventListener('click', () => {
+                opcodeLegend.classList.toggle('expanded');
+                toggleText.textContent = opcodeLegend.classList.contains('expanded') ? 'Ocultar' : 'Mostrar';
+            });
 
             // Selección de caso
             caseCards.forEach(card => {
