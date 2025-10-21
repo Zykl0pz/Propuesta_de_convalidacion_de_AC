@@ -70,12 +70,10 @@ Una vez ejecutado, el programa simulará el flujo de instrucciones del computado
 
 ## 🧪 Ejemplos de Programas
 
-El proyecto incluye varios programas de ejemplo en la carpeta `examples/` que puedes cargar y ejecutar para probar la simulación:
+El proyecto incluye varios programas de ejemplo que puedes cargar y ejecutar para probar la simulación:
 
 - Suma simple
-- Bucle básico
-- Programa factorial
-- Algoritmo de ordenamiento
+- Resta simple
 
 ## 📝 Notas Importarias
 
