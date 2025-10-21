@@ -734,15 +734,6 @@
                 const tc = state.testCases[state.selectedCase];
                 addresses = Object.keys(tc.memory).map(addr => parseInt(addr));
                 
-                // Also show a range around the program
-                const minAddr = Math.min(...addresses);
-                const maxAddr = Math.max(...addresses);
-                for (let i = Math.max(0, minAddr - 5); i <= Math.min(4095, maxAddr + 5); i++) {
-                    if (!addresses.includes(i)) {
-                        addresses.push(i);
-                    }
-                }
-                
                 addresses.sort((a, b) => a - b);
             } else {
                 // Show default range if no test case selected
