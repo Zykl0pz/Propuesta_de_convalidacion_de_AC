@@ -1000,18 +1000,17 @@ public class ComputerSimulationGUI {
                 }
 
                 // Mostrar datos
-                for (int i = 0x200; i <= 0x223; i++) {
-                    if (simulation.memory[i] != 0) {
-                        memoryModel.addRow(new Object[]{
-                                String.format("0x%03X", i),
-                                String.format("0x%04X", simulation.memory[i]),
-                                Integer.toString(simulation.memory[i])
-                        });
-                    }
+                for (int i = 0x200; i < 0x203; i++) {
+                    memoryModel.addRow(new Object[]{
+                            String.format("0x%03X", i),
+                            String.format("0x%04X", simulation.memory[i]),
+                            Integer.toString(simulation.memory[i])
+                    });
+
                 }
             } else { // IAS
                 // Mostrar instrucciones
-                for (int i = 0; i <= 5; i++) {
+                for (int i = 0; i < 5; i++) {
                     if (simulation.memory[i] != 0) {
                         int value = simulation.memory[i];
                         String content = "";
@@ -1033,7 +1032,7 @@ public class ComputerSimulationGUI {
 
                         // Corregir aquí: cambiar la forma de construir la cadena de contenido
                         content = ((IASSimulation) simulation).instructionSet.getOrDefault(opcodeStr, "???") +
-                                " M(" + address + ")";
+                                 + address + ")";
 
                         memoryModel.addRow(new Object[]{
                                 String.format("0x%03X", i),
